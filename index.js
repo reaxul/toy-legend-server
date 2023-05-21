@@ -15,34 +15,48 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
 });
 
 async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-      await client.connect();
-      
-      const toyCollection = client.db('toyLegend').collection('toyCollection');
+    try {
+        // Connect the client to the server	(optional starting in v4.7)
+        await client.connect();
 
-      app.post('/toy-collection', async (req, res) => { 
-          const toys = req.body;
-          console.log(toys);
-          const result = await toyCollection.insertOne(toys);
-          res.send(result);
-      })
+        const toyCollection = client.db('toyLegend').collection('toyCollection');
 
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
-  }
+        app.get('/all-toys', async (req, res) => {
+            const result = await toyCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.get('/my-toys', async (req, res) => {
+            let query = {};
+            if (req.query?.sellerEmail) {
+                query = { sellerEmail: req.query.sellerEmail }
+            }
+            const result = await toyCollection.find(query).toArray();
+            res.send(result);
+        })
+
+        app.post('/toy-collection', async (req, res) => {
+            const toys = req.body;
+            console.log(toys);
+            const result = await toyCollection.insertOne(toys);
+            res.send(result);
+        })
+
+        // Send a ping to confirm a successful connection
+        await client.db("admin").command({ ping: 1 });
+        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    } finally {
+        // Ensures that the client will close when you finish/error
+        // await client.close();
+    }
 }
 run().catch(console.dir);
 

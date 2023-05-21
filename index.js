@@ -57,6 +57,13 @@ async function run() {
             res.send(result);
         })
 
+        app.delete('/my-toys/:id', async (req, res) => { 
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await toyCollection.deleteOne(query);
+            res.send(result);
+        })
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -74,4 +81,4 @@ app.get('/', (req, res) => {
 
 app.listen(port, () => {
     console.log(`toy legend server listening on port ${port}`);
-})
+}) 
